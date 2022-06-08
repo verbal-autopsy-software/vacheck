@@ -13,9 +13,10 @@ from vacheck.datacheck5 import DataCheck5
 
 # Details
 
-With the development of the **InterVA** algorithm, several data consistency 
-checks were designed to ensure that indicators and symptoms do not indicate 
-conflicting information.  For example, the following are inconsistent:
+With the development of the [**InterVA** algorithm](http://www.byass.uk/interva/), 
+several data consistency checks were designed to ensure that indicators and 
+symptoms do not indicate conflicting information (e.g., male and pregnant).  
+For example, the following are inconsistent:
 
 * *ageInDays*: 10 days
 * *How long did (s)he have a cough*: 4 weeks
@@ -23,10 +24,15 @@ conflicting information.  For example, the following are inconsistent:
 The data checks try to reconcile inconsistencies like these.  In the original 
 software the data checks were defined in **probbase.xls** 
 (the symptom-cause-information matrix with the conditional probabilities of 
-each symptom given a cause -- see below for more information on the SCI).  
+each symptom given a cause -- see below for more information on the SCI,
+and the [InterVA User's Guide](http://www.byass.uk/interva/)).  
 
-Each type of check is performed for each VA record, and then the process is
-repeated a second time.
+Each type of consistency check is performed for each VA record, and then the 
+process is repeated a second time.
+
+Before the consistency checks are run, any VA record with missing information
+on age or sex are removed -- these indicators are necessary for running the
+InterVA and InSilicoVA algorithms.
 
 ## How each data check is performed
 
