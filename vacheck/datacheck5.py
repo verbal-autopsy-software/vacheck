@@ -5,20 +5,22 @@ vacheck.datacheck5
 
 Tool for running data checks used by InterVA5.
 """
-from pandas import read_csv
+
+from .exceptions import VAInputException, VAIDException
+from pandas import read_csv, Series
 from pkgutil import get_data
 from io import BytesIO
 from numpy import nan
 
 
-def datacheck5(input, id, insilico_check=False):
+def datacheck5(va_input, va_id, insilico_check=False):
     """
     Runs verbal autopsy data consistency check from InterVA5 algorithm.
-    :param input: original data for one observation with values
+    :param va_input: original data for one observation with values
     0 (absence), 1 (presence), and numpy.nan (missing).
-    :type input: pandas.Series
-    :param id: ID for this observation
-    :type id: string
+    :type va_input: pandas.Series
+    :param va_id: ID for this observation
+    :type va_id: string
     :param insilico_check: Indicator to use InSilicoVA rule which sets all
     symptoms that should not be asked to a value of missing. In contrast,
     the default rule sets these symptoms to missing only when they take the
@@ -34,9 +36,22 @@ def datacheck5(input, id, insilico_check=False):
     # note: drop second row so it matches the input
     probbase.drop(index=0, inplace=True)
     probbase["indic"].iloc[0] = "prior"
-    input_current = input.copy()
+    if not isinstance(va_input, Series):
+        raise VAInputException(
+            "`va_input` must be a pandas.Series, not {}".format(
+                va_input.__class__.__name__
+            ))
+    if not all(va_input.dropna().isin([va_id, 0, 1])):
+        raise VAInputException(
+            "`va_input` must have values 0, 1, nan, and `va_id`"
+        )
+    if len(va_input) != 354:
+        raise VAInputException(
+            "`va_input` must have 354 elements"
+        )
+    input_current = va_input.copy()
     number_symptoms = input_current.shape[0]
-    index_current = id
+    index_current = va_id
     first_pass = []
     second_pass = []
 
@@ -82,9 +97,6 @@ def datacheck5(input, id, insilico_check=False):
                 ask_if_val_str = probbase.iat[j, 15][5:6]
                 ask_if_val = int(
                     ask_if_val_str.replace("Y", "1").replace("N", "0"))
-                ask_if_subst_str = probbase[ask_if_row].iat[0, 5]
-                ask_if_subst = int(
-                    ask_if_subst_str.replace("Y", "1").replace("N", "0"))
 
                 if input_current[j] == subst_val:
                     change_ask_if = (
@@ -93,7 +105,7 @@ def datacheck5(input, id, insilico_check=False):
 
                     if change_ask_if:
                         input_current[ask_if_indic] = ask_if_val
-                        msg = (f"{index_current}   {probbase.iat[j, 3]} "
+                        msg = (f"{index_current}   {ask_if_who} "
                                f"({probbase.iat[j, 2]})  not flagged in category "
                                f"{probbase[ask_if_row].iat[0, 3]} "
                                f"({probbase[ask_if_row].iat[0, 2]}) "

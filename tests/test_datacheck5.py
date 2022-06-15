@@ -2,26 +2,54 @@
 
 import pytest
 from pandas import read_csv, Series
+from numpy import nan
 import pkgutil
 from io import BytesIO
 
 from vacheck.datacheck5 import datacheck5
+from vacheck import exceptions
+
 va_data_csv = pkgutil.get_data("vacheck", "data/example_input.csv")
 va_data = read_csv(BytesIO(va_data_csv))
+
+@pytest.fixture
+def single_record():
+    return va_data.iloc[0].copy()
 
 
 class TestReturnDefaults:
 
-    results = datacheck5(input=va_data.iloc[0], id=va_data["ID"][0])
+    va_id = va_data["ID"][0]
+    results = datacheck5(va_input=va_data.iloc[0], va_id=va_id)
+    output = results["output"]
+    output_2 = output.replace(nan, 2)
 
-    def test_return_type(self):
+    def test_return_types(self):
         assert type(self.results) is dict
-
-    def test_output_type(self):
         assert type(self.results["output"]) == Series
-
-    def test_output_first_pass(self):
         assert type(self.results["first_pass"]) == list
-
-    def test_output_second_pass(self):
         assert type(self.results["second_pass"]) == list
+
+    def test_output_indices(self):
+        assert self.output.index.equals(va_data.columns)
+
+    def test_output_values(self):
+        assert all(self.output_2.isin([self.va_id, 0, 1, 2]))
+
+
+def test_invalid_va_input_type(single_record):
+    with pytest.raises(exceptions.VAInputException):
+        datacheck5(single_record.to_list(), "d1")
+
+
+def test_invalid_va_input_dtype(single_record):
+    bad_record = single_record
+    bad_record[2] = 33
+    with pytest.raises(exceptions.VAInputException):
+        datacheck5(bad_record, "d1")
+
+def test_invalid_va_input_n_elements(single_record):
+    bad_record = single_record
+    bad_record.pop("i004a")
+    with pytest.raises(exceptions.VAInputException):
+        datacheck5(bad_record, "d1")
