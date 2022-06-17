@@ -29,6 +29,7 @@ setup(
     },
     install_requires=[
         "pandas",
+        "numpy",
         ],
     classifiers=[
         "Programming Language :: Python :: 3",

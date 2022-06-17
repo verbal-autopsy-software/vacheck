@@ -37,19 +37,29 @@ class TestReturnDefaults:
         assert all(self.output_2.isin([self.va_id, 0, 1, 2]))
 
 
-def test_invalid_va_input_type(single_record):
+def test_invalid_arg_type(single_record):
     with pytest.raises(exceptions.VAInputException):
         datacheck5(single_record.to_list(), "d1")
+    with pytest.raises(exceptions.VAIDException):
+        single_record[0] = ""
+        datacheck5(single_record, "")
+    with pytest.raises(exceptions.VAInputException):
+        single_record[0] = 3
+        single_record[2] = 3
+        datacheck5(single_record, 3)
 
 
-def test_invalid_va_input_dtype(single_record):
+def test_invalid_va_input_data_value(single_record):
     bad_record = single_record
     bad_record[2] = 33
     with pytest.raises(exceptions.VAInputException):
         datacheck5(bad_record, "d1")
+
 
 def test_invalid_va_input_n_elements(single_record):
     bad_record = single_record
     bad_record.pop("i004a")
     with pytest.raises(exceptions.VAInputException):
         datacheck5(bad_record, "d1")
+
+
