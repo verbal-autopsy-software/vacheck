@@ -40,7 +40,7 @@ Name: 0, Length: 354, dtype: object
 >>> checked_input.get("second_pass")
 []
 >>> # run checks on entire DataFrame (takes a minute or two)
->>> check_all = input.apply(lambda x: datacheck5(x, x.ID)['output'], axis=1)
+>>> check_all = input.apply(lambda x: datacheck5(x, x.ID)["output"], axis=1)
 >>> check_all
        ID  i004a  i004b  i019a  i019b  i022a  i022b  i022c  i022d  i022e  ...  i450o  i451o  i452o  i453o  i454o  i455o  i456o  i457o  i458o  i459o
 0      d1    NaN    NaN    1.0    NaN    1.0    NaN    NaN      0      0  ...      0      0      0      0      0      0      0      0      0      0
@@ -126,20 +126,41 @@ Relevant columns in **probbase.xls**
 * **nnonly** (column Q)
 
 ```python
-from vacheck.datacheck5 import datacheck5
-from pandas import read_csv, Series
-from pkgutil import get_data
-from io import BytesIO
+>>> from vacheck.datacheck5 import get_probbase
+>>> probbase = get_probbase()
+>>> probbase.iat[0, 2]
+'probbase v18 20200403 '
+>>> probbase.columns
+Index(['indic', 'qdesc', 'sdesc', 'who_2016', 'ilab', 'subst', 'samb',
+       'dontask1', 'dontask2', 'dontask3', 'dontask4', 'dontask5', 'dontask6',
+       'dontask7', 'dontask8', 'doaskif', 'nnonly', 'a_nrp', 'a_pend_6w',
+       'a_preg', 'b_0101', 'b_0102', 'b_0103', 'b_0104', 'b_0105', 'b_0106',
+       'b_0107', 'b_0108', 'b_0109', 'b_0110', 'b_0111', 'b_0112', 'b_0199',
+       'b_0201', 'b_0202', 'b_0203', 'b_0204', 'b_0205', 'b_0299', 'b_0301',
+       'b_0302', 'b_0303', 'b_0401', 'b_0402', 'b_0403', 'b_0499', 'b_0501',
+       'b_0502', 'b_0601', 'b_0602', 'b_0701', 'b_0801', 'b_0901', 'b_0902',
+       'b_0903', 'b_0904', 'b_0905', 'b_0906', 'b_0907', 'b_0908', 'b_0999',
+       'b_1001', 'b_1002', 'b_1003', 'b_1004', 'b_1006', 'b_1099', 'b_1101',
+       'b_1102', 'b_1201', 'b_1202', 'b_1203', 'b_1204', 'b_1205', 'b_1206',
+       'b_1207', 'b_1208', 'b_1209', 'b_1210', 'b_1299', 'b_9800', 'c_cult',
+       'c_emer', 'c_hsys', 'c_inev', 'c_know', 'c_resr'],
+      dtype='object')
+>>> probbase[["indic", "subst", "dontask1", "dontask8", "doaskif", "nnonly"]]
+     indic subst dontask1 dontask8 doaskif nnonly
+1    prior   NaN      NaN      NaN     NaN    NaN
+2    i004a     Y   i004bY      NaN     NaN    NaN
+3    i004b     Y   i004aY      NaN     NaN    NaN
+4    i019a     Y   i019bY      NaN     NaN    NaN
+5    i019b     Y   i019aY      NaN     NaN    NaN
+..     ...   ...      ...      ...     ...    ...
+350  i455o     Y      NaN      NaN     NaN    NaN
+351  i456o     Y      NaN      NaN     NaN    NaN
+352  i457o     Y      NaN      NaN     NaN    NaN
+353  i458o     N      NaN      NaN     NaN    NaN
+354  i459o     Y      NaN      NaN     NaN    NaN
 
-probbase_bytes = get_data("vacheck", "data/probbaseV5.csv")
-    probbase = read_csv(BytesIO(probbase_bytes))
-probbase.drop(index=0, inplace=True)
-    probbase["indic"].iloc[0] = "prior"
-
-
-# walk through examples at bottom
+[354 rows x 6 columns]
 ```
-
 
 
 ## Examples
