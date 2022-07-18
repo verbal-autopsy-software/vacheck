@@ -12,6 +12,7 @@ from vacheck import exceptions
 va_data_csv = pkgutil.get_data("vacheck", "data/example_input.csv")
 va_data = read_csv(BytesIO(va_data_csv))
 
+
 @pytest.fixture
 def single_record():
     return va_data.iloc[0].copy()
@@ -61,5 +62,3 @@ def test_invalid_va_input_n_elements(single_record):
     bad_record.pop("i004a")
     with pytest.raises(exceptions.VAInputException):
         datacheck5(bad_record, "d1")
-
-

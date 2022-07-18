@@ -4,11 +4,58 @@ Data consistency checks for verbal autopsy (VA) data collected using the WHO
 VA instrument.
 
 ```python
-from vacheck.datacheck5 import DataCheck5
+>>> from vacheck.datacheck5 import datacheck5, get_example_input
+>>> input = get_example_input()
+>>> input.head
+<bound method NDFrame.head of        ID  i004a  i004b  i019a  i019b  i022a  i022b  i022c  i022d  i022e  ...  i450o  i451o  i452o  i453o  i454o  i455o  i456o  i457o  i458o  i459o
+0      d1    NaN    NaN    1.0    NaN    1.0    NaN    NaN      0      0  ...      0      0      0      0      0      0      0      0      0      0
+1      d2    NaN    NaN    NaN    1.0    1.0    NaN    NaN      0      0  ...      0      0      0      0      0      0      0      0      0      0
+2      d3    NaN    NaN    1.0    NaN    NaN    1.0    NaN      0      0  ...      0      0      0      0      0      0      0      0      0      0
+3      d4    NaN    NaN    NaN    1.0    NaN    NaN    1.0      0      0  ...      0      0      0      0      0      0      0      0      0      0
+4      d5    NaN    NaN    1.0    NaN    NaN    NaN    1.0      0      0  ...      0      0      0      0      0      0      0      0      0      0
+..    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...  ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...
+195  d196    NaN    NaN    NaN    1.0    NaN    NaN    1.0      0      0  ...      0      0      0      0      0      0      0      0      0      0
+196  d197    NaN    NaN    1.0    NaN    1.0    NaN    NaN      0      0  ...      0      0      0      0      0      0      0      0      0      0
+197  d198    NaN    NaN    1.0    NaN    1.0    NaN    NaN      0      0  ...      0      0      0      0      0      0      0      0      0      0
+198  d199    NaN    NaN    NaN    1.0    1.0    NaN    NaN      0      0  ...      0      0      0      0      0      0      0      0      0      0
+199  d200    NaN    NaN    NaN    1.0    1.0    NaN    NaN      0      0  ...      0      0      0      0      0      0      0      0      0      0
 
-# load probbase and look at relevant columns
+[200 rows x 354 columns]>
+>>> checked_input = datacheck5(va_input=input.iloc[0], va_id=input.at[0, "ID"])
+>>> checked_input.get("output")
+ID        d1
+i004a    NaN
+i004b    NaN
+i019a    1.0
+i019b    NaN
+        ... 
+i455o      0
+i456o      0
+i457o      0
+i458o      0
+i459o      0
+Name: 0, Length: 354, dtype: object
+>>> checked_input.get("first_pass")[0]
+'d1   W610104-o (ever cry) only required for neonates - cleared in working information'
+>>> checked_input.get("second_pass")
+[]
+>>> # run checks on entire DataFrame (takes a minute or two)
+>>> check_all = input.apply(lambda x: datacheck5(x, x.ID)['output'], axis=1)
+>>> check_all
+       ID  i004a  i004b  i019a  i019b  i022a  i022b  i022c  i022d  i022e  ...  i450o  i451o  i452o  i453o  i454o  i455o  i456o  i457o  i458o  i459o
+0      d1    NaN    NaN    1.0    NaN    1.0    NaN    NaN      0      0  ...      0      0      0      0      0      0      0      0      0      0
+1      d2    NaN    NaN    NaN    1.0    1.0    NaN    NaN      0      0  ...      0      0      0      0      0      0      0      0      0      0
+2      d3    NaN    NaN    1.0    NaN    NaN    1.0    NaN      0      0  ...      0      0      0      0      0      0      0      0      0      0
+3      d4    NaN    NaN    NaN    1.0    NaN    NaN    1.0      0      0  ...      0      0      0      0      0      0      0      0      0      0
+4      d5    NaN    NaN    1.0    NaN    NaN    NaN    1.0      0      0  ...      0      0      0      0      0      0      0      0      0      0
+..    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...  ...    ...    ...    ...    ...    ...    ...    ...    ...    ...    ...
+195  d196    NaN    NaN    NaN    1.0    NaN    NaN    1.0      0      0  ...      0      0      0      0      0      0      0      0      0      0
+196  d197    NaN    NaN    1.0    NaN    1.0    NaN    NaN      0      0  ...      0      0      0      0      0      0      0      0      0      0
+197  d198    NaN    NaN    1.0    NaN    1.0    NaN    NaN      0      0  ...      0      0      0      0      0      0      0      0      0      0
+198  d199    NaN    NaN    NaN    1.0    1.0    NaN    NaN      0      0  ...      0      0      0      0      0      0      0      0      0      0
+199  d200    NaN    NaN    NaN    1.0    1.0    NaN    NaN      0      0  ...      0      0      0      0      0      0      0      0      0      0
 
-# walk through examples at bottom
+[200 rows x 354 columns]
 ```
 
 # Details
@@ -77,6 +124,22 @@ Relevant columns in **probbase.xls**
 * **dontask1 - dontask8** (columns H - O)
 * **doaskif** (column P)
 * **nnonly** (column Q)
+
+```python
+from vacheck.datacheck5 import datacheck5
+from pandas import read_csv, Series
+from pkgutil import get_data
+from io import BytesIO
+
+probbase_bytes = get_data("vacheck", "data/probbaseV5.csv")
+    probbase = read_csv(BytesIO(probbase_bytes))
+probbase.drop(index=0, inplace=True)
+    probbase["indic"].iloc[0] = "prior"
+
+
+# walk through examples at bottom
+```
+
 
 
 ## Examples
