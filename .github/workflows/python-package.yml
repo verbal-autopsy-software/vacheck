@@ -24,7 +24,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install curl libcurl
+        sudo apt-get install curl libcurl4-openssl-dev
         Rscript -e "install.packages('InterVA5')"
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
