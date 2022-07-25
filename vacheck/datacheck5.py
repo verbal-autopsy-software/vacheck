@@ -7,13 +7,15 @@ Tool for running data checks used by InterVA5.
 """
 
 from .exceptions import VAInputException, VAIDException
-from pandas import read_csv, Series
+from pandas import read_csv, Series, DataFrame
 from pkgutil import get_data
 from io import BytesIO
 from numpy import nan
 
 
-def datacheck5(va_input, va_id, insilico_check=False):
+def datacheck5(va_input: Series,
+               va_id: str,
+               insilico_check=False) -> dict:
     """
     Runs verbal autopsy data consistency check from InterVA5 algorithm.
     :param va_input: original data for one observation with values
@@ -150,3 +152,31 @@ def datacheck5(va_input, va_id, insilico_check=False):
               "first_pass": first_pass,
               "second_pass": second_pass}
     return output
+
+
+def get_example_input() -> DataFrame:
+    """
+    Get an example input.
+
+    :return: 200 records of sample input.
+    :rtype: pandas.DataFrame
+    """
+
+    example_input_bytes = get_data(__name__, "data/example_input.csv")
+    example_input = read_csv(BytesIO(example_input_bytes))
+    return example_input
+
+
+def get_probbase() -> DataFrame:
+    """
+    Get the probbase (the source of the data consistency checks).
+
+    :return: 200 records of sample input.
+    :rtype: pandas.DataFrame
+    """
+
+    probbase_bytes = get_data(__name__, "data/probbaseV5.csv")
+    probbase = read_csv(BytesIO(probbase_bytes))
+    # note: drop first row so it matches the input
+    probbase.drop(index=0, inplace=True)
+    return probbase

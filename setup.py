@@ -1,6 +1,6 @@
 import os
 from codecs import open
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -22,10 +22,11 @@ setup(
     long_description_content_type="text/markdown",
     url=about["__url__"],
     license=about["__license__"],
-    packages=find_packages(),
+    packages=find_namespace_packages(),
     include_package_data=True,
+    package_dir={"": "."},
     package_data={
-        "vacheck": ["data/*"],
+        "vacheck.data": ["*.csv"],
     },
     install_requires=[
         "pandas",
@@ -37,6 +38,6 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-        "Operating System :: POSIX :: Linux",
+        "Operating System :: OS Independent",
     ],
 )

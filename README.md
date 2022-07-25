@@ -1,6 +1,7 @@
 # vacheck
 
-![pytest](https://github.com/verbal-autopsy-software/vacheck/actions/workflows/python-package.yml/badge.svg)
+[![image](https://img.shields.io/pypi/pyversions/vacheck)](https://pypi.org/project/vacheck/)
+[![pytest](https://github.com/verbal-autopsy-software/vacheck/actions/workflows/python-package.yml/badge.svg)](https://github.com/verbal-autopsy-software/vacheck/actions)
 
 Data consistency checks for verbal autopsy (VA) data collected using the WHO 
 VA instrument.

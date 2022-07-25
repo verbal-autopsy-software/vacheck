@@ -1,5 +1,5 @@
 __title__ = "vacheck"
-__description__ = "Verbal autopsy Data consistency checks (from InterVA Algorithm)."
+__description__ = "Verbal autopsy data consistency checks (from InterVA algorithm)."
 __url__ = "https://github.com/verbal-autopsy-software/vacheck"
 __version__ = "0.0.1"
 __author__ = "Jason Thomas"
