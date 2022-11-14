@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from vacheck.datacheck5 import datacheck5
+from vacheck.datacheck5 import datacheck5, get_probbase
 from rpy2.robjects.packages import data, importr
 import rpy2.robjects as robjects
 from rpy2.robjects.conversion import get_conversion, localconverter
@@ -36,8 +36,9 @@ with localconverter(robjects.default_converter + pandas2ri.converter):
     r_data = get_conversion().rpy2py(randomva5)
 
 r_data.replace({"y": 1, "n": 0, ".": nan}, inplace=True)
+pb = get_probbase()
 py_check = r_data.replace(".", nan).apply(
-    lambda x: datacheck5(x, x.ID)['output'],
+    lambda x: datacheck5(x, x.ID, probbase=pb)['output'],
     axis=1)
 py_check
 r_check.set_axis(list(py_check), axis=1, inplace=True)

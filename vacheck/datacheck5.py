@@ -10,11 +10,13 @@ from .exceptions import VAInputException, VAIDException
 from pandas import read_csv, Series, DataFrame
 from pkgutil import get_data
 from io import BytesIO
-from numpy import nan
+from numpy import nan, ndarray, where, isnan
+import numpy
 
 
 def datacheck5(va_input: Series,
                va_id: str,
+               probbase: ndarray,
                insilico_check=False) -> dict:
     """
     Runs verbal autopsy data consistency check from InterVA5 algorithm.
@@ -23,6 +25,8 @@ def datacheck5(va_input: Series,
     :type va_input: pandas.Series
     :param va_id: ID for this observation
     :type va_id: string
+    :param probbase: SCI from InterVA5
+    :type probbase: numpy.ndarray
     :param insilico_check: Indicator to use InSilicoVA rule which sets all
     symptoms that should not be asked to a value of missing. In contrast,
     the default rule sets these symptoms to missing only when they take the
@@ -33,11 +37,6 @@ def datacheck5(va_input: Series,
     second_pass (a list).
     """
 
-    probbase_bytes = get_data("vacheck", "data/probbaseV5.csv")
-    probbase = read_csv(BytesIO(probbase_bytes))
-    # note: drop first row so it matches the input
-    probbase.drop(index=0, inplace=True)
-    probbase["indic"].iloc[0] = "prior"
     if not isinstance(va_input, Series):
         raise VAInputException(
             "`va_input` must be a pandas.Series, not {}".format(
@@ -55,7 +54,9 @@ def datacheck5(va_input: Series,
         raise VAIDException(
             "`va_id` cannot be an empty string"
         )
-    input_current = va_input.copy()
+    tmp_input = va_input.copy()
+    tmp_input["ID"] = 0
+    input_current = tmp_input.to_numpy()
     number_symptoms = input_current.shape[0]
     index_current = str(va_id)
     first_pass = []
@@ -63,17 +64,18 @@ def datacheck5(va_input: Series,
 
     for k in range(2):
         for j in range(1, number_symptoms):
-            subst_val = int(probbase.iat[j, 5] == "Y")
-            bool_dont_asks = probbase.iloc[j, 7:15].notna()
-            dont_asks = bool_dont_asks[bool_dont_asks].index
+            # print(f"Current iteration: {j}\n")
+            subst_val = int(probbase[j, 5] == "Y")
+            dont_asks = where(probbase[j, 7:15] != ".")[0]
             if len(dont_asks) > 0:
                 for q in dont_asks:
-                    dont_ask_q = probbase[q].iloc[j]
-                    input_dont_ask = input_current[dont_ask_q[0:5]]
+                    dont_ask_q = probbase[j, q + 7].item()
+                    input_index = where(probbase[:, 0] == dont_ask_q[0:5])[0]
+                    input_dont_ask = input_current[input_index].item()
                     dont_ask_val = int(dont_ask_q[5:6] == "Y")
 
-                    if (input_current[j] is not nan and
-                            input_dont_ask is not nan):
+                    if (not isnan(input_current[j]) and
+                            not isnan(input_dont_ask)):
                         if (
                                 (input_current[j] == subst_val or
                                  insilico_check) and
@@ -83,13 +85,10 @@ def datacheck5(va_input: Series,
 
                             input_current[j] = nan
 
-                            dont_ask_row = probbase["indic"].str.contains(
-                                dont_ask_q[0:5])
-                            dont_ask_q_who = probbase[dont_ask_row].iat[0, 3]
-                            dont_ask_sdesc = probbase[dont_ask_row].iat[0, 2]
-
-                            msg = (f"{index_current}   {probbase.iat[j, 4]} "
-                                   f"({probbase.iat[j, 3]}) " 
+                            dont_ask_q_who = probbase[input_index, 3]
+                            dont_ask_sdesc = probbase[input_index, 2]
+                            msg = (f"{index_current}   {probbase[j, 4]} "
+                                   f"({probbase[j, 3]}) " 
                                    "value inconsistent with "
                                    f"{dont_ask_q_who} ({dont_ask_sdesc}) "
                                    "- cleared in working information")
@@ -100,11 +99,11 @@ def datacheck5(va_input: Series,
                                 second_pass.append(msg)
 
             # ask if
-            if probbase.iat[j, 15] is not nan and input_current[j] is not nan:
-                ask_if_indic = probbase.iat[j, 15][0:5]
-                ask_if_row = probbase["indic"].str.contains(ask_if_indic)
-                input_ask_if = input_current[ask_if_indic]
-                ask_if_val_str = probbase.iat[j, 15][5:6]
+            if probbase[j, 15] != "." and not isnan(input_current[j]):
+                ask_if_indic = probbase[j, 15][0:5]
+                ask_if_row = probbase[:, 0] == ask_if_indic
+                input_ask_if = input_current[ask_if_row]
+                ask_if_val_str = probbase[j, 15][5:6]
                 ask_if_val = int(
                     ask_if_val_str.replace("Y", "1").replace("N", "0"))
 
@@ -114,12 +113,12 @@ def datacheck5(va_input: Series,
                             subst_val != input_ask_if)
 
                     if change_ask_if:
-                        input_current[ask_if_indic] = ask_if_val
-                        msg = (f"{index_current}   {probbase.iat[j, 3]} "
-                               f"({probbase.iat[j, 2]})" 
+                        input_current[ask_if_row] = ask_if_val
+                        msg = (f"{index_current}   {probbase[j, 3]} "
+                               f"({probbase[j, 2]})" 
                                "  not flagged in category "
-                               f"{probbase[ask_if_row].iat[0, 3]} "
-                               f"({probbase[ask_if_row].iat[0, 2]}) "
+                               f"{probbase[ask_if_row][0, 3]} "
+                               f"({probbase[ask_if_row][0, 2]}) "
                                "- updated in working information")
 
                         if k == 0:
@@ -128,10 +127,10 @@ def datacheck5(va_input: Series,
                             second_pass.append(msg)
 
             # neonates only
-            if probbase.iat[j, 16] is not nan and input_current[j] is not nan:
-                nn_only = probbase.iat[j, 16][0:5]
-                input_nn_only = input_current[nn_only]
-                if input_nn_only is nan:
+            if probbase[j, 16] != "." and not isnan(input_current[j]):
+                nn_only = probbase[j, 16][0:5]
+                input_nn_only = input_current[probbase[:, 0] == nn_only].item()
+                if isnan(input_nn_only):
                     input_nn_only = 0
 
                 # the following alternate syncs the log output with the
@@ -140,15 +139,18 @@ def datacheck5(va_input: Series,
                 if input_current[j] == subst_val and input_nn_only != 1:
                     input_current[j] = nan
 
-                    msg = (f"{index_current}   {probbase.iat[j, 3]} "
-                           f"({probbase.iat[j, 2]}) only required for neonates"
+                    msg = (f"{index_current}   {probbase[j, 3]} "
+                           f"({probbase[j, 2]}) only required for neonates"
                            " - cleared in working information")
                     if k == 0:
                         first_pass.append(msg)
                     else:
                         second_pass.append(msg)
+    input_final = Series(input_current,
+                         index=va_input.index)
+    input_final["ID"] = va_id
 
-    output = {"output": input_current,
+    output = {"output": input_final,
               "first_pass": first_pass,
               "second_pass": second_pass}
     return output
@@ -167,16 +169,28 @@ def get_example_input() -> DataFrame:
     return example_input
 
 
-def get_probbase() -> DataFrame:
+def get_probbase(keep_nan: bool = False,
+                 keep_qdesc: bool = False) -> numpy.ndarray:
     """
     Get the probbase (the source of the data consistency checks).
 
-    :return: 200 records of sample input.
-    :rtype: pandas.DataFrame
+    :param keep_nan: Indicator for retaining NaN values (otherwise they
+    are filled in with '.'
+    :type keep_nan: bool
+    :param keep_qdesc: Indicator for retaining the values in the probbase
+    column 'qdesc' be
+    :type keep_qdesc: bool
+    :return: symptom-cause-information matrix for InterVA5
+    :rtype: numpy.array
     """
 
     probbase_bytes = get_data(__name__, "data/probbaseV5.csv")
     probbase = read_csv(BytesIO(probbase_bytes))
     # note: drop first row so it matches the input
     probbase.drop(index=0, inplace=True)
-    return probbase
+    if not keep_nan:
+        probbase.fillna(".", inplace=True)
+    if not keep_qdesc:
+        probbase["qdesc"] = ""
+    probbase_array = probbase.to_numpy(dtype=str)
+    return probbase_array

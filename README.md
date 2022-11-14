@@ -24,7 +24,8 @@ VA instrument.
 199  d200    NaN    NaN    NaN    1.0    1.0    NaN    NaN      0      0  ...      0      0      0      0      0      0      0      0      0      0
 
 [200 rows x 354 columns]>
->>> checked_input = datacheck5(va_input=input.iloc[0], va_id=input.at[0, "ID"])
+>>> pb = get_probbase()
+>>> checked_input = datacheck5(va_input=input.iloc[0], va_id=input.at[0, "ID"], probbase=pb)
 >>> checked_input.get("output")
 ID        d1
 i004a    NaN
@@ -42,8 +43,8 @@ Name: 0, Length: 354, dtype: object
 'd1   W610104-o (ever cry) only required for neonates - cleared in working information'
 >>> checked_input.get("second_pass")
 []
->>> # run checks on entire DataFrame (takes a minute or two)
->>> check_all = input.apply(lambda x: datacheck5(x, x.ID)["output"], axis=1)
+>>> # run checks on entire DataFrame (takes a few seconds for 200 records)
+>>> check_all = input.apply(lambda x: datacheck5(x, x.ID, probbase=pb)["output"], axis=1)
 >>> check_all
        ID  i004a  i004b  i019a  i019b  i022a  i022b  i022c  i022d  i022e  ...  i450o  i451o  i452o  i453o  i454o  i455o  i456o  i457o  i458o  i459o
 0      d1    NaN    NaN    1.0    NaN    1.0    NaN    NaN      0      0  ...      0      0      0      0      0      0      0      0      0      0
@@ -130,7 +131,7 @@ Relevant columns in **probbase.xls**
 
 ```python
 >>> from vacheck.datacheck5 import get_probbase
->>> probbase = get_probbase()
+>>> probbase = get_probbase(keep_nan=True, keep_qdesc=True)
 >>> probbase.iat[0, 2]
 'probbase v18 20200403 '
 >>> probbase.columns
