@@ -131,7 +131,7 @@ Relevant columns in **probbase.xls**
 
 ```python
 >>> from vacheck.datacheck5 import get_probbase
->>> probbase = get_probbase(keep_nan=True, keep_qdesc=True)
+>>> probbase = get_probbase(replace_nan=False, replace_qdesc=False)
 >>> probbase.iat[0, 2]
 'probbase v18 20200403 '
 >>> probbase.columns

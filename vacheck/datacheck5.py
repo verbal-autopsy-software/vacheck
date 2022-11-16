@@ -169,17 +169,20 @@ def get_example_input() -> DataFrame:
     return example_input
 
 
-def get_probbase(keep_nan: bool = False,
-                 keep_qdesc: bool = False) -> numpy.ndarray:
+def get_probbase(drop_prior: bool = True,
+                 replace_nan: bool = True,
+                 replace_qdesc: bool = True) -> numpy.ndarray:
     """
     Get the probbase (the source of the data consistency checks).
 
-    :param keep_nan: Indicator for retaining NaN values (otherwise they
-    are filled in with '.'
-    :type keep_nan: bool
-    :param keep_qdesc: Indicator for retaining the values in the probbase
-    column 'qdesc' be
-    :type keep_qdesc: bool
+    :param drop_prior: Indicator for retaining row with
+    unconditional prior
+    :type drop_prior: bool
+    :param replace_nan: Indicator for replacing NaN values with "."
+    :type replace_nan: bool
+    :param replace_qdesc: Indicator for replacing values in column 'qdesc'
+    with "" (empty strings)
+    :type replace_qdesc: bool
     :return: symptom-cause-information matrix for InterVA5
     :rtype: numpy.array
     """
@@ -187,10 +190,11 @@ def get_probbase(keep_nan: bool = False,
     probbase_bytes = get_data(__name__, "data/probbaseV5.csv")
     probbase = read_csv(BytesIO(probbase_bytes))
     # note: drop first row so it matches the input
-    probbase.drop(index=0, inplace=True)
-    if not keep_nan:
+    if drop_prior:
+        probbase.drop(index=0, inplace=True)
+    if replace_nan:
         probbase.fillna(".", inplace=True)
-    if not keep_qdesc:
+    if replace_qdesc:
         probbase["qdesc"] = ""
     probbase_array = probbase.to_numpy(dtype=str)
     return probbase_array
