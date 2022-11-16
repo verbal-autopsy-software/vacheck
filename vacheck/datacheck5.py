@@ -66,7 +66,7 @@ def datacheck5(va_input: Series,
         for j in range(1, number_symptoms):
             # print(f"Current iteration: {j}\n")
             subst_val = int(probbase[j, 5] == "Y")
-            dont_asks = where(probbase[j, 7:15] != ".")[0]
+            dont_asks = where(probbase[j, 7:15] != "")[0]
             if len(dont_asks) > 0:
                 for q in dont_asks:
                     dont_ask_q = probbase[j, q + 7].item()
@@ -88,7 +88,7 @@ def datacheck5(va_input: Series,
                             dont_ask_q_who = probbase[input_index, 3]
                             dont_ask_sdesc = probbase[input_index, 2]
                             msg = (f"{index_current}   {probbase[j, 4]} "
-                                   f"({probbase[j, 3]}) " 
+                                   f"({probbase[j, 3]}) "
                                    "value inconsistent with "
                                    f"{dont_ask_q_who} ({dont_ask_sdesc}) "
                                    "- cleared in working information")
@@ -99,7 +99,7 @@ def datacheck5(va_input: Series,
                                 second_pass.append(msg)
 
             # ask if
-            if probbase[j, 15] != "." and not isnan(input_current[j]):
+            if probbase[j, 15] != "" and not isnan(input_current[j]):
                 ask_if_indic = probbase[j, 15][0:5]
                 ask_if_row = probbase[:, 0] == ask_if_indic
                 input_ask_if = input_current[ask_if_row]
@@ -115,7 +115,7 @@ def datacheck5(va_input: Series,
                     if change_ask_if:
                         input_current[ask_if_row] = ask_if_val
                         msg = (f"{index_current}   {probbase[j, 3]} "
-                               f"({probbase[j, 2]})" 
+                               f"({probbase[j, 2]})"
                                "  not flagged in category "
                                f"{probbase[ask_if_row][0, 3]} "
                                f"({probbase[ask_if_row][0, 2]}) "
@@ -127,7 +127,7 @@ def datacheck5(va_input: Series,
                             second_pass.append(msg)
 
             # neonates only
-            if probbase[j, 16] != "." and not isnan(input_current[j]):
+            if probbase[j, 16] != "" and not isnan(input_current[j]):
                 nn_only = probbase[j, 16][0:5]
                 input_nn_only = input_current[probbase[:, 0] == nn_only].item()
                 if isnan(input_nn_only):
@@ -169,8 +169,7 @@ def get_example_input() -> DataFrame:
     return example_input
 
 
-def get_probbase(keep_nan: bool = False,
-                 keep_qdesc: bool = False) -> numpy.ndarray:
+def get_probbase(keep_qdesc: bool = False) -> numpy.ndarray:
     """
     Get the probbase (the source of the data consistency checks).
 
@@ -188,8 +187,6 @@ def get_probbase(keep_nan: bool = False,
     probbase = read_csv(BytesIO(probbase_bytes))
     # note: drop first row so it matches the input
     probbase.drop(index=0, inplace=True)
-    if not keep_nan:
-        probbase.fillna(".", inplace=True)
     if not keep_qdesc:
         probbase["qdesc"] = ""
     probbase_array = probbase.to_numpy(dtype=str)
