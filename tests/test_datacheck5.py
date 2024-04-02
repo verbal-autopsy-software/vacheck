@@ -45,17 +45,17 @@ def test_invalid_arg_type(single_record):
     with pytest.raises(exceptions.VAInputException):
         datacheck5(single_record.to_list(), probbase=pb, va_id="d1")
     with pytest.raises(exceptions.VAIDException):
-        single_record[0] = ""
+        single_record.iloc[0] = ""
         datacheck5(single_record, probbase=pb, va_id="")
     with pytest.raises(exceptions.VAInputException):
-        single_record[0] = 3
-        single_record[2] = 3
+        single_record.iloc[0] = 3
+        single_record.iloc[2] = 3
         datacheck5(single_record, probbase=pb, va_id=3)
 
 
 def test_invalid_va_input_data_value(single_record):
     bad_record = single_record
-    bad_record[2] = 33
+    bad_record.iloc[2] = 33
     with pytest.raises(exceptions.VAInputException):
         datacheck5(bad_record, probbase=pb, va_id="d1")
 

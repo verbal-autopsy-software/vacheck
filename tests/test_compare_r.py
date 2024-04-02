@@ -35,13 +35,19 @@ with localconverter(robjects.default_converter + pandas2ri.converter):
     r_check = get_conversion().rpy2py(r_df)
     r_data = get_conversion().rpy2py(randomva5)
 
-r_data.replace({"y": 1, "n": 0, ".": nan}, inplace=True)
+for col in r_data:
+    if not (col == "ID"):
+        r_data[col] = r_data[col].cat.rename_categories({"y": 1, "n": 0, ".": 3})
+        r_data[col] = r_data[col].astype("float64")
+        r_data[col] = r_data[col].replace(3, nan)
+
+
 pb = get_probbase()
 py_check = r_data.replace(".", nan).apply(
     lambda x: datacheck5(x, x.ID, probbase=pb)['output'],
     axis=1)
 py_check
-r_check.set_axis(list(py_check), axis=1, inplace=True)
+r_check = r_check.set_axis(list(py_check), axis=1)
 r_check["ID"] = py_check["ID"].copy()
 
 
