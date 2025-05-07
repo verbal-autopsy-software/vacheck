@@ -1,7 +1,17 @@
-# vacheck
+# vacheck -- NOT MAINTAINED
 
+**At this time we do not have the resources to actively maintain this software.** 
+
+<br>
+
+We are actively maintaining research-oriented software that supports
+our publications, but we are not able to support user-facing packages, modules,
+or applications.
+
+<!---
 [![image](https://img.shields.io/pypi/pyversions/vacheck)](https://pypi.org/project/vacheck/)
 [![pytest](https://github.com/verbal-autopsy-software/vacheck/actions/workflows/python-package.yml/badge.svg)](https://github.com/verbal-autopsy-software/vacheck/actions)
+--->
 
 Data consistency checks for verbal autopsy (VA) data collected using the WHO 
 VA instrument.
